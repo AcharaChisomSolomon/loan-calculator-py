@@ -1,39 +1,62 @@
+import argparse
 import math
 
-print('Enter the loan principal:')
-principal = int(input())
+parser = argparse.ArgumentParser()
 
-print('''
-What do you want to calculate?
-type "m" - for number of monthly payments,
-type "p" - for the monthly payment:
-''')
-choice = input()
+parser.add_argument("--payment")
+parser.add_argument("--principal")
+parser.add_argument("--periods")
+parser.add_argument("--interest")
 
-if choice == 'm':
-    print('Enter the monthly payment:')
-    monthly_pay = int(input())
+args = parser.parse_args()
 
-    print()
-    time = math.ceil(principal / monthly_pay)
-    if time > 1:
-        print('It will take ' + str(time)
-              + ' months to repay the loan')
+if not args.payment:
+    a_i = float(args.interest)
+    i = a_i / (100 * 12)
+    principal = float(args.principal)
+    periods = float(args.periods)
+
+    monthly_pay = principal * ((i * math.pow(i + 1, periods)) / (math.pow(1 + i, periods) - 1))
+    print(f'Your monthly payment = {math.ceil(monthly_pay)}!')
+elif not args.principal:
+    a_i = float(args.interest)
+    i = a_i / (100 * 12)
+    payment = float(args.payment)
+    periods = float(args.periods)
+
+    principal = payment / ((i * math.pow(1 + i, periods)) / (math.pow(1 + i, periods) - 1))
+    print(f'Your loan principal = {round(principal)}!')
+elif not args.periods:
+    a_i = float(args.interest)
+    i = a_i / (100 * 12)
+    principal = float(args.principal)
+    payment = float(args.payment)
+
+    periods = math.log(payment / (payment - i * principal), 1 + i)
+    periods = math.ceil(periods)
+    time_str = ''
+
+    if periods < 12:
+        if periods == 1:
+            time_str = f'{periods} month'
+        else:
+            time_str = f'{periods} months'
     else:
-        print('It will take 1 month to repay the loan')
+        years = periods // 12
+        rem_months = periods % 12
+        if years == 1:
+            if rem_months == 0:
+                time_str = f'{years} year'
+            elif rem_months == 1:
+                time_str = f'{years} year {rem_months} month'
+            else:
+                time_str = f'{years} year {rem_months} months'
+        else:
+            if rem_months == 0:
+                time_str = f'{years} years'
+            elif rem_months == 1:
+                time_str = f'{years} years {rem_months} month'
+            else:
+                time_str = f'{years} years {rem_months} months'
 
-elif choice == 'p':
-    print('Enter the number of months:')
-    months_num = int(input())
-    monthly_pay = principal / months_num
-    remainder = principal % months_num
-
-    print()
-    if remainder > 0:
-        monthly_pay = math.ceil(monthly_pay)
-        last_pay = principal - (months_num - 1) * monthly_pay
-        print('Your monthly payment = ', monthly_pay,
-              ' and the last payment = ', last_pay, '.',
-              sep='')
-    else:
-        print('Your monthly payment = ', int(monthly_pay))
+    print(f'It will take {time_str} to repay this loan!')
